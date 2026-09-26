@@ -66,8 +66,8 @@ jobs:
           name: data-splits
       - name: Start MLflow Server
         run: |
-          nohup mlflow ui --host 0.0.0.0 --port 5000 &  # Run MLflow UI in the background
-          sleep 5  # Wait for a moment to let the server starts
+          nohup mlflow ui --host 0.0.0.0 --port 5000 &
+          sleep 5
       - name: Model Building
         run: python tourism_project/model_building/train.py
       - name: Verify Model File Existence
@@ -79,6 +79,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main # Pull latest changes and rebase to avoid merge conflicts
-          git add tourism_project/deployment/model.joblib   # path to the saved model file
-          git commit -m "Add trained model [skip ci]"
-          git push
+
+          git add tourism_project/deployment/model.joblib # Stage the file
+          # Check if there are any changes to commit after staging
+          if git diff --cached --exit-code --quiet tourism_project/deployment/model.joblib; then
+            echo "No changes detected for tourism_project/deployment/model.joblib. Skipping commit."
+          else
+            git commit -m "Add trained model [skip ci]"
+            git push
+            echo "Trained model committed and pushed."
+          fi
