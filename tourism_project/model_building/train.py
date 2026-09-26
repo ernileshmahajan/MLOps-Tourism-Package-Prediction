@@ -63,10 +63,10 @@ with mlflow.start_run():
     # Grid Search with cross-validation for hyperparameter tuning
     # Using 'roc_auc' as scoring metric for binary classification
     grid_search = GridSearchCV(
-        model_pipeline, 
-        param_grid, 
-        cv=3, 
-        n_jobs=-1, 
+        model_pipeline,
+        param_grid,
+        cv=3,
+        n_jobs=-1,
         scoring='roc_auc' # Changed scoring to roc_auc for classification
     )
     grid_search.fit(X_train, y_train)
@@ -86,7 +86,9 @@ with mlflow.start_run():
     mlflow.log_metric("best_roc_auc", grid_search.best_score_)
 
     best_model = grid_search.best_estimator_
-    mlflow.sklearn.log_model(best_model, "best_xgboost_model")
+    # Log the best model with trusted types for MLflow's security feature
+    mlflow.sklearn.log_model(best_model, "best_xgboost_model", 
+                             skops_trusted_types=['xgboost.core.Booster', 'xgboost.sklearn.XGBClassifier'])
 
     # Evaluate the best model on the training and test sets
     y_train_pred = best_model.predict(X_train)
