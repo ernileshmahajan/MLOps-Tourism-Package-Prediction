@@ -7,6 +7,16 @@ import joblib
 model_path = os.path.join(os.path.dirname(__file__), "model.joblib")
 model = joblib.load(model_path)
 
+# Define the expected feature order based on the training data (after CustomerID and ProdTaken removal)
+# This order must exactly match the columns of X_train during model training.
+expected_features_order = [
+    'Age', 'TypeofContact', 'CityTier', 'Occupation', 'Gender',
+    'NumberOfPersonVisiting', 'PreferredPropertyStar', 'MaritalStatus',
+    'NumberOfTrips', 'Passport', 'OwnCar', 'NumberOfChildrenVisiting',
+    'Designation', 'MonthlyIncome', 'PitchSatisfactionScore',
+    'ProductPitched', 'NumberOfFollowups', 'DurationOfPitch'
+]
+
 # Streamlit UI
 st.title("Tourism Package Purchase Prediction")
 st.write("""
@@ -38,7 +48,7 @@ num_followups = st.number_input("Number of Follow-ups", min_value=0, max_value=1
 duration_of_pitch = st.number_input("Duration of Pitch (minutes)", min_value=5, max_value=60, value=20)
 
 # Assemble input into DataFrame
-input_data = pd.DataFrame([{
+input_dict = {
     'Age': age,
     'TypeofContact': type_of_contact,
     'CityTier': city_tier,
@@ -57,10 +67,23 @@ input_data = pd.DataFrame([{
     'ProductPitched': product_pitched,
     'NumberOfFollowups': num_followups,
     'DurationOfPitch': duration_of_pitch
-}])
+}
+input_data = pd.DataFrame([input_dict])
+
+# Apply the same gender correction logic as in prep.py for consistency
+if 'Gender' in input_data.columns:
+    input_data['Gender'] = input_data['Gender'].str.strip().replace({'Fe Male': 'Female', 'Fe male': 'Female'})
+
+# Reindex the input_data to match the order of columns seen during training
+# This is critical for ColumnTransformer to correctly apply transformations.
+try:
+    input_data = input_data[expected_features_order]
+except KeyError as e:
+    st.error(f"Error: Mismatch in feature names. Missing column: {e}. Please contact support.")
+    st.stop() # Stop the app execution if columns are missing
 
 # Predict button
-if st.button("Predict Purchase"):  
+if st.button("Predict Purchase"):
     prediction = model.predict(input_data)[0]
     prediction_proba = model.predict_proba(input_data)[0]
 
@@ -71,5 +94,20 @@ if st.button("Predict Purchase"):
         st.warning(f"Customer is unlikely to purchase the package. (Probability: {prediction_proba[0]:.2f})")
 
     st.write("--- Debug Information ---")
-    st.write("Input Data (pre-processed by model pipeline):")
-    st.dataframe(model.named_steps['columntransformer'].transform(input_data)) # Display preprocessed input
+    st.write("Input Data (before pre-processing):")
+    st.dataframe(input_data)
+    # Display preprocessed input only if the ColumnTransformer exists in the pipeline
+    if 'columntransformer' in model.named_steps:
+        # Ensure the transformed output is a DataFrame for better display if possible
+        transformed_data = model.named_steps['columntransformer'].transform(input_data)
+        # If transformed_data is a numpy array, convert it to DataFrame for display
+        # Getting feature names after one-hot encoding requires careful handling
+        # For simplicity, we just show the raw transformed array if it's not a DataFrame
+        if isinstance(transformed_data, pd.DataFrame):
+            st.write("Input Data (pre-processed by model pipeline):")
+            st.dataframe(transformed_data)
+        else:
+            st.write("Input Data (pre-processed by model pipeline - array format):")
+            st.write(transformed_data)
+    else:
+        st.write("ColumnTransformer not found in model pipeline. Cannot display pre-processed data.")
