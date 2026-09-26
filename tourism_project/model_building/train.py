@@ -17,6 +17,12 @@ X_TEST_PATH = 'Xtest.csv'
 Y_TRAIN_PATH = 'ytrain.csv'
 Y_TEST_PATH = 'ytest.csv'
 
+# Set the tracking URL for MLflow to connect to the local MLflow server
+# This is crucial for GitHub Actions where a server is started locally.
+mlflow.set_tracking_uri("http://127.0.0.1:5000")
+# Set the name for the experiment (optional, but good practice)
+mlflow.set_experiment("MLOps_CICD_experiment")
+
 # Load the split datasets
 X_train = pd.read_csv(X_TRAIN_PATH)
 X_test = pd.read_csv(X_TEST_PATH)
