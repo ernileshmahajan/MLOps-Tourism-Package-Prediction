@@ -9,6 +9,11 @@ DATA_PATH = "tourism_project/data/tourism.csv"
 df = pd.read_csv(DATA_PATH)
 print(f"Original dataset shape: {df.shape}")
 
+# Drop 'Unnamed: 0' column if it exists (often created when saving/loading CSVs with default index)
+if 'Unnamed: 0' in df.columns:
+    df = df.drop(columns=['Unnamed: 0'])
+    print(f"Dropped 'Unnamed: 0' column. New shape: {df.shape}")
+
 # Remove unnecessary columns (e.g., CustomerID is an identifier)
 columns_to_drop = ['CustomerID']
 df = df.drop(columns=columns_to_drop, errors='ignore') # Operate directly on df
