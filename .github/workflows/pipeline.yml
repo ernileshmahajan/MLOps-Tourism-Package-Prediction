@@ -70,10 +70,14 @@ jobs:
           sleep 5  # Wait for a moment to let the server starts
       - name: Model Building
         run: python tourism_project/model_building/train.py
+      - name: Verify Model File Existence
+        run: |
+          ls -l tourism_project/deployment/model.joblib
+          # If the file is not found, this command will fail and stop the workflow
       - name: Commit Trained Model
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add tourism_project/deployment/model.joblib   # path to the saved model file
-          git commit -m "Add trained model [skip ci]" || echo "No changes to commit"
+          git commit -m "Add trained model [skip ci]"
           git push
