@@ -78,7 +78,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main # Pull latest changes and rebase to avoid merge conflicts
 
           git add tourism_project/deployment/model.joblib # Stage the file
           # Check if there are any changes to commit after staging
