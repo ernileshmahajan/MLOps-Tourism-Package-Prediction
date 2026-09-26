@@ -1,0 +1,9 @@
+# Intermediate data splits
+Xtrain.csv
+Xtest.csv
+ytrain.csv
+ytest.csv
+
+# MLflow artifacts and database
+mlartifacts/
+mlflow.db
