@@ -78,6 +78,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main # Pull latest changes and rebase to avoid merge conflicts
           git add tourism_project/deployment/model.joblib   # path to the saved model file
           git commit -m "Add trained model [skip ci]"
           git push
